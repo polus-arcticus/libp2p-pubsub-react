@@ -1,8 +1,10 @@
+import * as React from 'react'
 import { 
   useState,
+  useEffect,
   useCallback,
   createContext
-}
+} from 'react'
 
 import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 import { noise } from '@chainsafe/libp2p-noise'
@@ -18,7 +20,9 @@ import { createLibp2p } from 'libp2p'
 import { fromString, toString } from 'uint8arrays'
 
 export const Libp2pContext = createContext({
-  libp2p: null
+  libp2p: null,
+  started: false,
+  error: null,
 })
 
 export const Libp2pProvider = ({ children }) => {
@@ -30,7 +34,6 @@ export const Libp2pProvider = ({ children }) => {
     try {
       setLibp2p(
         await createLibp2p({
-
           addresses: {
             listen: [
               // make a reservation on any discovered relays - this will let other
@@ -73,7 +76,6 @@ export const Libp2pProvider = ({ children }) => {
         })
       )
       setStarted(true)
-      )
     } catch (e) {
       console.error(e)
       setError(e)
@@ -81,13 +83,15 @@ export const Libp2pProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    await startLibp2p()
+    startLibp2p()
   }, [])
 
   return (
     <Libp2pContext.Provider
       value={{
-        libp2p
+        libp2p,
+        started,
+        error
       }}
     >
       {children}
